@@ -228,4 +228,8 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.action === "extractJob") {
         sendResponse(extractJobDetails());
     }
+    // Safari only allows custom URL schemes to be opened by the page itself
+    if (message.action === "navigate") {
+        window.location.href = message.url;
+    }
 });
