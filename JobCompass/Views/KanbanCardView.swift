@@ -24,6 +24,14 @@ struct KanbanCardView: View {
                             .foregroundStyle(.yellow)
                             .font(.caption)
                     }
+                    if !application.sourceURL.isEmpty, let url = URL(string: application.sourceURL) {
+                        Link(destination: url) {
+                            Image(systemName: "link")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .help("Open job posting")
+                    }
                 }
 
                 HStack(spacing: 6) {

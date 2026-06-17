@@ -16,6 +16,7 @@ struct AddEditSheet: View {
     @State private var salaryMinText = ""
     @State private var salaryMaxText = ""
     @State private var notes = ""
+    @State private var sourceURL = ""
 
     private var isEditing: Bool { application != nil }
 
@@ -123,6 +124,22 @@ struct AddEditSheet: View {
                             .padding(.top, 4)
                     }
 
+                    // Source URL
+                    GroupBox("Job Posting URL") {
+                        HStack(spacing: 8) {
+                            TextField("https://", text: $sourceURL)
+                                .textFieldStyle(.roundedBorder)
+                            if let url = URL(string: sourceURL), !sourceURL.isEmpty {
+                                Link(destination: url) {
+                                    Image(systemName: "arrow.up.right.square")
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                                .help("Open in browser")
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+
                     if isEditing, let app = application {
                         VStack(alignment: .leading, spacing: 4) {
                             Label("Added \(app.dateAdded.formatted(date: .long, time: .omitted))",
@@ -161,6 +178,7 @@ struct AddEditSheet: View {
             salaryMinText = app.salaryMin > 0 ? "\(app.salaryMin)" : ""
             salaryMaxText = app.salaryMax > 0 ? "\(app.salaryMax)" : ""
             notes = app.notes
+            sourceURL = app.sourceURL
         } else if let p = prefill {
             company = p.company ?? ""
             role = p.role ?? ""
@@ -168,6 +186,7 @@ struct AddEditSheet: View {
             if let wt = p.workType { workType = wt }
             if let min = p.salaryMin { salaryMinText = "\(min)" }
             if let max = p.salaryMax { salaryMaxText = "\(max)" }
+            sourceURL = p.sourceURL ?? ""
         }
     }
 
@@ -184,6 +203,7 @@ struct AddEditSheet: View {
             app.salaryMin = minSalary
             app.salaryMax = maxSalary
             app.notes = notes
+            app.sourceURL = sourceURL.trimmingCharacters(in: .whitespaces)
             app.lastUpdated = Date()
         } else {
             let newApp = JobApplication(
@@ -194,7 +214,8 @@ struct AddEditSheet: View {
                 workType: workType,
                 salaryMin: minSalary,
                 salaryMax: maxSalary,
-                notes: notes
+                notes: notes,
+                sourceURL: sourceURL.trimmingCharacters(in: .whitespaces)
             )
             modelContext.insert(newApp)
         }
