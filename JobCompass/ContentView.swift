@@ -59,7 +59,7 @@ struct ContentView: View {
             HStack(spacing: 10) {
                 Image(systemName: "map.fill")
                     .font(.title2)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("JobCompass")
                         .font(.headline)
