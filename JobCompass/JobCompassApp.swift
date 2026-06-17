@@ -1,23 +1,13 @@
-//
-//  JobCompassApp.swift
-//  JobCompass
-//
-//  Created by Spencer Apeadjei-Duodu on 17.06.26.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct JobCompassApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
+        let schema = Schema([JobApplication.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            return try ModelContainer(for: schema, configurations: [config])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
@@ -28,5 +18,7 @@ struct JobCompassApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .windowStyle(.titleBar)
+        .windowToolbarStyle(.unified)
     }
 }
