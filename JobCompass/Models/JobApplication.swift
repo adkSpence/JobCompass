@@ -66,6 +66,7 @@ final class JobApplication {
     var salaryMin: Int
     var salaryMax: Int
     var notes: String
+    var sourceURL: String
     var dateAdded: Date
     var lastUpdated: Date
 
@@ -107,7 +108,8 @@ final class JobApplication {
         workType: WorkType = .remote,
         salaryMin: Int = 0,
         salaryMax: Int = 0,
-        notes: String = ""
+        notes: String = "",
+        sourceURL: String = ""
     ) {
         self.id = UUID()
         self.company = company
@@ -118,6 +120,7 @@ final class JobApplication {
         self.salaryMin = salaryMin
         self.salaryMax = salaryMax
         self.notes = notes
+        self.sourceURL = sourceURL
         self.dateAdded = Date()
         self.lastUpdated = Date()
     }
