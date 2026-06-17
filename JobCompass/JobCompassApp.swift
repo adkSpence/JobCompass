@@ -25,9 +25,12 @@ struct JobCompassApp: App {
                           let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                     else { return }
 
+                    // URLSearchParams encodes spaces as '+' (form encoding).
+                    // URLComponents follows the URI spec and treats '+' literally,
+                    // so we decode it manually here.
                     let params = Dictionary(
                         uniqueKeysWithValues: (components.queryItems ?? []).compactMap { item in
-                            item.value.map { (item.name, $0) }
+                            item.value.map { (item.name, $0.replacingOccurrences(of: "+", with: " ")) }
                         }
                     )
 
