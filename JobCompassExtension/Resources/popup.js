@@ -11,7 +11,6 @@ async function init() {
     try {
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
 
-        // Try injecting content script on demand (covers pages not in manifest matches)
         try {
             await browser.scripting.executeScript({
                 target: { tabId: tab.id },
@@ -19,13 +18,11 @@ async function init() {
             });
         } catch (_) {}
 
-        // Ask content script for extracted data
         let job = null;
         try {
             job = await browser.tabs.sendMessage(tab.id, { action: "extractJob" });
         } catch (_) {}
 
-        // Always show the form — pre-fill whatever we found, leave the rest blank
         $("company").value  = job?.company  || "";
         $("role").value     = job?.role     || "";
         $("location").value = job?.location || "";
@@ -37,17 +34,13 @@ async function init() {
         wt.dataset.salaryMax = job?.salaryMax || "";
         wt.dataset.url       = job?.url || tab.url;
 
-        // Show a subtle hint if nothing was auto-detected
         if (!job?.company && !job?.role) {
-            const hint = document.getElementById("hint");
-            if (hint) hint.classList.remove("hidden");
+            document.getElementById("hint").classList.remove("hidden");
         }
 
         show("found");
     } catch (err) {
-        // Even on error, show the blank form so the user can type manually
-        const wt = $("workType");
-        wt.dataset.url = "";
+        $("workType").dataset.url = "";
         show("found");
         console.error("JobCompass popup error:", err);
     }
@@ -69,7 +62,25 @@ $("addBtn").addEventListener("click", () => {
         return;
     }
 
-    browser.runtime.sendMessage({ action: "openInJobCompass", job });
+    const params = new URLSearchParams();
+    if (job.company)   params.set("company",   job.company);
+    if (job.role)      params.set("role",       job.role);
+    if (job.location)  params.set("location",   job.location);
+    if (job.workType)  params.set("workType",   job.workType);
+    if (job.salaryMin) params.set("salaryMin",  job.salaryMin);
+    if (job.salaryMax) params.set("salaryMax",  job.salaryMax);
+    if (job.url)       params.set("url",        job.url);
+
+    const deepLink = `jobcompass://quickadd?${params.toString()}`;
+
+    // Open from the popup page itself — extension pages have no CSP restrictions
+    // so custom URL schemes work here, unlike content scripts on third-party pages.
+    const a = document.createElement("a");
+    a.href = deepLink;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
     showNotice("Opening JobCompass…");
     $("addBtn").disabled = true;
     setTimeout(() => window.close(), 1200);
