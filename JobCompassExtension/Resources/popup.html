@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <span class="icon">🧭</span>
+        <span class="title">JobCompass</span>
+    </div>
+
+    <div id="loading" class="state">
+        <div class="spinner"></div>
+        <p>Reading page…</p>
+    </div>
+
+    <div id="found" class="state hidden">
+        <div class="field">
+            <label>Company</label>
+            <input id="company" type="text" placeholder="Company name">
+        </div>
+        <div class="field">
+            <label>Role</label>
+            <input id="role" type="text" placeholder="Job title">
+        </div>
+        <div class="field">
+            <label>Location</label>
+            <input id="location" type="text" placeholder="City or Remote">
+        </div>
+        <div class="field">
+            <label>Work Type</label>
+            <select id="workType">
+                <option value="">— select —</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Onsite">Onsite</option>
+            </select>
+        </div>
+        <button id="addBtn" class="primary">Add to JobCompass</button>
+        <p id="notice" class="notice hidden"></p>
+    </div>
+
+    <div id="unsupported" class="state hidden">
+        <p class="muted">No job details found on this page.</p>
+        <p class="muted small">Supported: LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, Workday and more.</p>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
