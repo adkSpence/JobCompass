@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 
 function show(id) {
-    ["loading", "found", "unsupported"].forEach(s =>
+    ["loading", "found"].forEach(s =>
         $(s).classList.toggle("hidden", s !== id)
     );
 }
@@ -11,7 +11,7 @@ async function init() {
     try {
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
 
-        // Inject content script on demand for pages not in the manifest matches
+        // Try injecting content script on demand (covers pages not in manifest matches)
         try {
             await browser.scripting.executeScript({
                 target: { tabId: tab.id },
@@ -19,32 +19,36 @@ async function init() {
             });
         } catch (_) {}
 
-        // Ask the content script for extracted data
+        // Ask content script for extracted data
         let job = null;
         try {
             job = await browser.tabs.sendMessage(tab.id, { action: "extractJob" });
         } catch (_) {}
 
-        if (!job || (!job.company && !job.role)) {
-            show("unsupported");
-            return;
-        }
-
-        $("company").value  = job.company  || "";
-        $("role").value     = job.role     || "";
-        $("location").value = job.location || "";
+        // Always show the form — pre-fill whatever we found, leave the rest blank
+        $("company").value  = job?.company  || "";
+        $("role").value     = job?.role     || "";
+        $("location").value = job?.location || "";
 
         const wt = $("workType");
-        if (job.workType) wt.value = job.workType;
+        if (job?.workType) wt.value = job.workType;
 
-        // Stash extras for handoff
-        wt.dataset.salaryMin = job.salaryMin || "";
-        wt.dataset.salaryMax = job.salaryMax || "";
-        wt.dataset.url       = job.url || tab.url;
+        wt.dataset.salaryMin = job?.salaryMin || "";
+        wt.dataset.salaryMax = job?.salaryMax || "";
+        wt.dataset.url       = job?.url || tab.url;
+
+        // Show a subtle hint if nothing was auto-detected
+        if (!job?.company && !job?.role) {
+            const hint = document.getElementById("hint");
+            if (hint) hint.classList.remove("hidden");
+        }
 
         show("found");
     } catch (err) {
-        show("unsupported");
+        // Even on error, show the blank form so the user can type manually
+        const wt = $("workType");
+        wt.dataset.url = "";
+        show("found");
         console.error("JobCompass popup error:", err);
     }
 }

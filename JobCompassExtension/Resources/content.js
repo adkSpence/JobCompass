@@ -1,6 +1,8 @@
 // Extracts job details from the current page.
-// Strategy 1: JSON-LD (most reliable — used by LinkedIn, Greenhouse, Lever, etc.)
-// Strategy 2: Site-specific DOM selectors as fallback.
+// Strategy 1: JSON-LD structured data (schema.org JobPosting)
+// Strategy 2: Open Graph / meta tags
+// Strategy 3: Site-specific DOM selectors
+// Strategy 4: Generic heuristics (page title + heading scan)
 
 function extractJobDetails() {
     const result = {
@@ -13,7 +15,7 @@ function extractJobDetails() {
         url: window.location.href
     };
 
-    // Strategy 1: JSON-LD structured data
+    // Strategy 1: JSON-LD
     const scripts = document.querySelectorAll('script[type="application/ld+json"]');
     for (const script of scripts) {
         try {
@@ -26,7 +28,12 @@ function extractJobDetails() {
         } catch (_) {}
     }
 
-    // Strategy 2: DOM fallbacks per site
+    // Strategy 2: Open Graph / meta tags
+    if (!result.company || !result.role) {
+        applyMetaTags(result);
+    }
+
+    // Strategy 3: Site-specific DOM selectors
     const host = window.location.hostname;
     if (!result.role || !result.company) {
         if (host.includes("linkedin.com"))       extractLinkedIn(result);
@@ -37,9 +44,16 @@ function extractJobDetails() {
         else if (host.includes("workday.com") || host.includes("myworkdayjobs.com")) extractWorkday(result);
     }
 
+    // Strategy 4: Generic heuristics from page title
+    if (!result.role || !result.company) {
+        applyTitleHeuristics(result);
+    }
+
     result.workType = normaliseWorkType(result.workType, result.location, document.body.innerText);
     return result;
 }
+
+// ── JSON-LD ──────────────────────────────────────────────────────────────────
 
 function findJobPosting(data) {
     if (!data) return null;
@@ -65,9 +79,8 @@ function applyJsonLd(job, result) {
         if (typeof addr === "string") {
             result.location = result.location || addr;
         } else if (addr) {
-            const city    = addr.addressLocality || "";
-            const country = addr.addressCountry  || "";
-            result.location = result.location || [city, country].filter(Boolean).join(", ");
+            const parts = [addr.addressLocality, addr.addressRegion, addr.addressCountry].filter(Boolean);
+            result.location = result.location || parts.join(", ");
         }
     }
 
@@ -81,49 +94,130 @@ function applyJsonLd(job, result) {
     }
 }
 
+// ── Meta tags ─────────────────────────────────────────────────────────────────
+
+function applyMetaTags(result) {
+    const og = name => document.querySelector(`meta[property="og:${name}"]`)?.content?.trim();
+    const siteName = og("site_name") || "";
+
+    // og:title often looks like "iOS Engineer at Acme - LinkedIn"
+    const ogTitle = og("title") || "";
+    if (ogTitle && !result.role) {
+        const atMatch = ogTitle.match(/^(.+?)\s+at\s+(.+?)(?:\s*[-|]|$)/i);
+        if (atMatch) {
+            result.role    = result.role    || atMatch[1].trim();
+            result.company = result.company || atMatch[2].trim();
+        } else {
+            result.role = result.role || ogTitle.split(/[-|]/)[0].trim();
+        }
+    }
+
+    // LinkedIn-specific: og:description contains location and company
+    if (siteName.toLowerCase().includes("linkedin")) {
+        const desc = og("description") || "";
+        // "Acme · Hamburg, Germany · 3 weeks ago"
+        const descParts = desc.split("·").map(s => s.trim());
+        if (descParts.length >= 2) {
+            result.company  = result.company  || descParts[0];
+            result.location = result.location || descParts[1];
+        }
+    }
+}
+
+// ── Site-specific DOM ─────────────────────────────────────────────────────────
+
 function extractLinkedIn(r) {
-    r.role     = r.role     || text(".job-details-jobs-unified-top-card__job-title h1") || text(".topcard__title");
-    r.company  = r.company  || text(".job-details-jobs-unified-top-card__company-name a") || text(".topcard__org-name-link");
-    r.location = r.location || text(".job-details-jobs-unified-top-card__primary-description-container .tvm__text") || text(".topcard__flavor--bullet");
+    // Title — try multiple selector generations
+    r.role = r.role
+        || text("h1.t-24")
+        || text("h1.job-details-jobs-unified-top-card__job-title")
+        || text(".job-details-jobs-unified-top-card__job-title h1")
+        || text(".topcard__title")
+        || text("h1");
+
+    // Company
+    r.company = r.company
+        || text(".job-details-jobs-unified-top-card__company-name a")
+        || text(".job-details-jobs-unified-top-card__company-name")
+        || text(".topcard__org-name-link")
+        || text('[data-tracking-control-name="public_jobs_topcard-org-name"]')
+        || text(".jobs-unified-top-card__company-name a");
+
+    // Location — LinkedIn puts location in a <span> inside a compound block
+    r.location = r.location
+        || text(".job-details-jobs-unified-top-card__primary-description-container .tvm__text:first-child")
+        || text(".jobs-unified-top-card__bullet")
+        || text(".topcard__flavor--bullet")
+        || text('[data-test-id="job-location"]');
+
+    // Work type badge (Remote / Hybrid / On-site)
+    r.workType = r.workType
+        || text(".job-details-jobs-unified-top-card__workplace-type")
+        || text(".jobs-unified-top-card__workplace-type")
+        || text(".topcard__flavor--bullet:last-child");
 }
 
 function extractIndeed(r) {
-    r.role     = r.role     || text('[data-testid="jobsearch-JobInfoHeader-title"] span');
-    r.company  = r.company  || text('[data-testid="inlineHeader-companyName"] a');
-    r.location = r.location || text('[data-testid="job-location"]');
+    r.role     = r.role     || text('[data-testid="jobsearch-JobInfoHeader-title"] span') || text("h1.jobsearch-JobInfoHeader-title");
+    r.company  = r.company  || text('[data-testid="inlineHeader-companyName"] a') || text(".jobsearch-InlineCompanyRating-companyHeader");
+    r.location = r.location || text('[data-testid="job-location"]') || text(".jobsearch-JobInfoHeader-subtitle span:last-child");
 }
 
 function extractGlassdoor(r) {
-    r.role     = r.role     || text('[data-test="job-title"]');
-    r.company  = r.company  || text('[data-test="employer-name"]');
-    r.location = r.location || text('[data-test="location"]');
+    r.role     = r.role     || text('[data-test="job-title"]')     || text("h1");
+    r.company  = r.company  || text('[data-test="employer-name"]') || text(".employer-name");
+    r.location = r.location || text('[data-test="location"]')      || text(".location");
 }
 
 function extractGreenhouse(r) {
-    r.role     = r.role     || text(".app-title") || text("h1.job-post-name");
+    r.role     = r.role     || text(".app-title") || text("h1.job-post-name") || text("h1");
     r.company  = r.company  || text(".company-name") || document.title.split(" at ").pop()?.trim();
-    r.location = r.location || text(".location");
+    r.location = r.location || text(".location")  || text(".job-post-location");
 }
 
 function extractLever(r) {
-    r.role     = r.role     || text(".posting-headline h2");
+    r.role     = r.role     || text(".posting-headline h2") || text("h2");
     r.company  = r.company  || document.title.split(" - ").pop()?.trim();
     r.location = r.location || text(".posting-categories .location");
     r.workType = r.workType || text(".posting-categories .workplaceTypes");
 }
 
 function extractWorkday(r) {
-    r.role     = r.role     || text('[data-automation-id="jobPostingHeader"]');
+    r.role     = r.role     || text('[data-automation-id="jobPostingHeader"]') || text("h2");
     r.company  = r.company  || text('[data-automation-id="jobPostingCompanyName"]') || document.title.split("|").pop()?.trim();
     r.location = r.location || text('[data-automation-id="locations"]');
 }
+
+// ── Generic heuristics ────────────────────────────────────────────────────────
+
+function applyTitleHeuristics(result) {
+    const title = document.title;
+    if (!title) return;
+
+    // "Role at Company | Site" or "Role - Company | Site"
+    const atMatch = title.match(/^(.+?)\s+(?:at|@)\s+(.+?)(?:\s*[-|]|$)/i);
+    if (atMatch) {
+        result.role    = result.role    || atMatch[1].trim();
+        result.company = result.company || atMatch[2].split(/[-|]/)[0].trim();
+        return;
+    }
+
+    // "Role - Company | Site"
+    const dashParts = title.split(/\s*[-|]\s*/);
+    if (dashParts.length >= 2) {
+        result.role    = result.role    || dashParts[0].trim();
+        result.company = result.company || dashParts[1].trim();
+    }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function text(selector) {
     return document.querySelector(selector)?.textContent?.trim() || null;
 }
 
 function normaliseWorkType(rawType, location, bodyText) {
-    const combined = [rawType, location, bodyText.slice(0, 2000)].filter(Boolean).join(" ").toLowerCase();
+    const combined = [rawType, location, bodyText.slice(0, 3000)].filter(Boolean).join(" ").toLowerCase();
     if (combined.includes("remote") || rawType === "TELECOMMUTE") return "Remote";
     if (combined.includes("hybrid")) return "Hybrid";
     if (combined.includes("on-site") || combined.includes("onsite") || combined.includes("in-office")) return "Onsite";
