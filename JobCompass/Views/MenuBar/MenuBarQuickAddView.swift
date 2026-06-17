@@ -5,8 +5,8 @@ struct MenuBarQuickAddView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
 
-    // Pre-fill support for Safari extension handoff
-    var prefill: JobApplicationPrefill?
+    // Prefill for manual quick-add from menu bar (not the Safari extension flow)
+    var prefill: JobApplicationPrefill? = nil
 
     @State private var company = ""
     @State private var role = ""
@@ -164,7 +164,8 @@ struct MenuBarQuickAddView: View {
     }
 }
 
-struct JobApplicationPrefill {
+struct JobApplicationPrefill: Identifiable {
+    let id = UUID()
     var company: String?
     var role: String?
     var location: String?

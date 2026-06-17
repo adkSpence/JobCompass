@@ -6,6 +6,7 @@ struct AddEditSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let application: JobApplication?
+    var prefill: JobApplicationPrefill? = nil
 
     @State private var company = ""
     @State private var role = ""
@@ -151,15 +152,23 @@ struct AddEditSheet: View {
     }
 
     private func populateIfEditing() {
-        guard let app = application else { return }
-        company = app.company
-        role = app.role
-        status = app.status
-        location = app.location
-        workType = app.workType
-        salaryMinText = app.salaryMin > 0 ? "\(app.salaryMin)" : ""
-        salaryMaxText = app.salaryMax > 0 ? "\(app.salaryMax)" : ""
-        notes = app.notes
+        if let app = application {
+            company = app.company
+            role = app.role
+            status = app.status
+            location = app.location
+            workType = app.workType
+            salaryMinText = app.salaryMin > 0 ? "\(app.salaryMin)" : ""
+            salaryMaxText = app.salaryMax > 0 ? "\(app.salaryMax)" : ""
+            notes = app.notes
+        } else if let p = prefill {
+            company = p.company ?? ""
+            role = p.role ?? ""
+            location = p.location ?? ""
+            if let wt = p.workType { workType = wt }
+            if let min = p.salaryMin { salaryMinText = "\(min)" }
+            if let max = p.salaryMax { salaryMaxText = "\(max)" }
+        }
     }
 
     private func save() {

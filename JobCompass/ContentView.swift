@@ -17,11 +17,13 @@ enum AppView: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query private var applications: [JobApplication]
 
     @State private var selectedView: AppView = .kanban
     @State private var selectedWorkTypes: Set<WorkType> = []
     @State private var locationFilter = ""
+    @State private var prefillSheet: JobApplicationPrefill? = nil
 
     var body: some View {
         NavigationSplitView {
@@ -50,6 +52,14 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 900, minHeight: 600)
+        .sheet(item: $prefillSheet) { prefill in
+            AddEditSheet(application: nil, prefill: prefill)
+        }
+        .onChange(of: appState.pendingPrefill) { _, newPrefill in
+            guard let newPrefill else { return }
+            prefillSheet = newPrefill
+            appState.pendingPrefill = nil
+        }
     }
 
     @ViewBuilder
