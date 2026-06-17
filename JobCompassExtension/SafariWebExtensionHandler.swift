@@ -1,16 +1,42 @@
+//
+//  SafariWebExtensionHandler.swift
+//  JobCompassExtension
+//
+//  Created by Spencer Apeadjei-Duodu on 17.06.26.
+//
+
 import SafariServices
 import os.log
 
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
+
     func beginRequest(with context: NSExtensionContext) {
-        let item = context.inputItems.first as? NSExtensionItem
-        let message = item?.userInfo?[SFExtensionMessageKey]
+        let request = context.inputItems.first as? NSExtensionItem
 
-        os_log(.default, "JobCompass extension received message: %@", "\(String(describing: message))")
+        let profile: UUID?
+        if #available(iOS 17.0, macOS 14.0, *) {
+            profile = request?.userInfo?[SFExtensionProfileKey] as? UUID
+        } else {
+            profile = request?.userInfo?["profile"] as? UUID
+        }
 
-        // The extension communicates with the app via the jobcompass:// URL scheme
-        // directly from background.js — no native messaging needed.
-        // This handler is required by the extension target but is otherwise unused.
-        context.completeRequest(returningItems: nil, completionHandler: nil)
+        let message: Any?
+        if #available(iOS 15.0, macOS 11.0, *) {
+            message = request?.userInfo?[SFExtensionMessageKey]
+        } else {
+            message = request?.userInfo?["message"]
+        }
+
+        os_log(.default, "Received message from browser.runtime.sendNativeMessage: %@ (profile: %@)", String(describing: message), profile?.uuidString ?? "none")
+
+        let response = NSExtensionItem()
+        if #available(iOS 15.0, macOS 11.0, *) {
+            response.userInfo = [ SFExtensionMessageKey: [ "echo": message ] ]
+        } else {
+            response.userInfo = [ "message": [ "echo": message ] ]
+        }
+
+        context.completeRequest(returningItems: [ response ], completionHandler: nil)
     }
+
 }
