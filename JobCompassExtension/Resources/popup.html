@@ -16,6 +16,7 @@
     </div>
 
     <div id="found" class="state hidden">
+        <p id="hint" class="hint hidden">Couldn't auto-detect — fill in manually.</p>
         <div class="field">
             <label>Company</label>
             <input id="company" type="text" placeholder="Company name">
@@ -39,11 +40,6 @@
         </div>
         <button id="addBtn" class="primary">Add to JobCompass</button>
         <p id="notice" class="notice hidden"></p>
-    </div>
-
-    <div id="unsupported" class="state hidden">
-        <p class="muted">No job details found on this page.</p>
-        <p class="muted small">Supported: LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, Workday and more.</p>
     </div>
 
     <script src="popup.js"></script>

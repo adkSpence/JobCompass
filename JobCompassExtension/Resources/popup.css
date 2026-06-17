@@ -50,6 +50,16 @@ body {
     font-size: 12px;
 }
 
+.hint {
+    font-size: 11px;
+    color: #888;
+    background: #2a2a2a;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
 .field { margin-bottom: 10px; }
 
 .field label {
