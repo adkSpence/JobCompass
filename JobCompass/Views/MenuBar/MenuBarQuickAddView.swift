@@ -164,7 +164,7 @@ struct MenuBarQuickAddView: View {
     }
 }
 
-struct JobApplicationPrefill: Identifiable {
+struct JobApplicationPrefill: Identifiable, Equatable {
     let id = UUID()
     var company: String?
     var role: String?
