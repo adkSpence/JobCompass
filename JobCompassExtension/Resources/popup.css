@@ -30,10 +30,8 @@ body {
 }
 
 .state { padding: 14px; }
-
 .hidden { display: none; }
 
-/* Loading */
 .spinner {
     width: 20px;
     height: 20px;
@@ -52,10 +50,7 @@ body {
     font-size: 12px;
 }
 
-/* Form */
-.field {
-    margin-bottom: 10px;
-}
+.field { margin-bottom: 10px; }
 
 .field label {
     display: block;
@@ -80,9 +75,7 @@ body {
 }
 
 .field input:focus,
-.field select:focus {
-    border-color: #0a84ff;
-}
+.field select:focus { border-color: #0a84ff; }
 
 .field select option { background: #2c2c2c; }
 
@@ -100,7 +93,7 @@ body {
     transition: background 0.15s;
 }
 
-.primary:hover { background: #0070d8; }
+.primary:hover  { background: #0070d8; }
 .primary:active { background: #005ec2; }
 .primary:disabled { background: #444; color: #777; cursor: default; }
 
@@ -113,10 +106,5 @@ body {
 
 .notice.error { color: #ff453a; }
 
-.muted {
-    color: #666;
-    text-align: center;
-    line-height: 1.5;
-}
-
+.muted { color: #666; text-align: center; line-height: 1.5; }
 .muted.small { font-size: 11px; margin-top: 6px; }

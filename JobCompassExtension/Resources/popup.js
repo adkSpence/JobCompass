@@ -1,26 +1,26 @@
 const $ = id => document.getElementById(id);
 
 function show(id) {
-    ["loading", "found", "unsupported"].forEach(s => $
-        (s).classList.toggle("hidden", s !== id));
+    ["loading", "found", "unsupported"].forEach(s =>
+        $(s).classList.toggle("hidden", s !== id)
+    );
 }
 
 async function init() {
     show("loading");
-
     try {
         const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
 
-        // Inject content script on demand for pages not matched by manifest
-        let job = null;
+        // Inject content script on demand for pages not in the manifest matches
         try {
-            [{ result: job }] = await browser.scripting.executeScript({
+            await browser.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ["content.js"]
             });
         } catch (_) {}
 
-        // Ask the content script for the extracted data
+        // Ask the content script for extracted data
+        let job = null;
         try {
             job = await browser.tabs.sendMessage(tab.id, { action: "extractJob" });
         } catch (_) {}
@@ -30,20 +30,17 @@ async function init() {
             return;
         }
 
-        // Populate form
         $("company").value  = job.company  || "";
         $("role").value     = job.role     || "";
         $("location").value = job.location || "";
 
         const wt = $("workType");
-        if (job.workType) {
-            wt.value = job.workType;
-        }
+        if (job.workType) wt.value = job.workType;
 
-        // Store extras for handoff
+        // Stash extras for handoff
         wt.dataset.salaryMin = job.salaryMin || "";
         wt.dataset.salaryMax = job.salaryMax || "";
-        wt.dataset.url       = job.url       || tab.url;
+        wt.dataset.url       = job.url || tab.url;
 
         show("found");
     } catch (err) {
@@ -71,7 +68,6 @@ $("addBtn").addEventListener("click", () => {
     browser.runtime.sendMessage({ action: "openInJobCompass", job });
     showNotice("Opening JobCompass…");
     $("addBtn").disabled = true;
-
     setTimeout(() => window.close(), 1200);
 });
 
