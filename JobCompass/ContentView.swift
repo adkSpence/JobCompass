@@ -90,6 +90,7 @@ struct ContentView: View {
                     .tag(view)
             }
             .listStyle(.sidebar)
+            .padding(.top, 6)
 
             Divider()
 
