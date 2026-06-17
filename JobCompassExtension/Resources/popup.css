@@ -1,0 +1,122 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 13px;
+    background: #1e1e1e;
+    color: #f0f0f0;
+    width: 280px;
+    min-height: 80px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid #333;
+}
+
+.icon { font-size: 16px; }
+
+.title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+}
+
+.state { padding: 14px; }
+
+.hidden { display: none; }
+
+/* Loading */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #444;
+    border-top-color: #0a84ff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#loading p {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+}
+
+/* Form */
+.field {
+    margin-bottom: 10px;
+}
+
+.field label {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 6px 8px;
+    background: #2c2c2c;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    color: #f0f0f0;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: #0a84ff;
+}
+
+.field select option { background: #2c2c2c; }
+
+.primary {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    background: #0a84ff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.primary:hover { background: #0070d8; }
+.primary:active { background: #005ec2; }
+.primary:disabled { background: #444; color: #777; cursor: default; }
+
+.notice {
+    margin-top: 8px;
+    font-size: 11px;
+    text-align: center;
+    color: #30d158;
+}
+
+.notice.error { color: #ff453a; }
+
+.muted {
+    color: #666;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.muted.small { font-size: 11px; margin-top: 6px; }

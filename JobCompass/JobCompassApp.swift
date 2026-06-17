@@ -51,6 +51,8 @@ struct JobCompassApp: App {
             role: params["role"],
             location: params["location"],
             workType: params["workType"].flatMap { WorkType(rawValue: $0) },
+            salaryMin: params["salaryMin"].flatMap { Int($0) },
+            salaryMax: params["salaryMax"].flatMap { Int($0) },
             sourceURL: params["url"]
         )
     }

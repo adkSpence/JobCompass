@@ -13,6 +13,8 @@ struct MenuBarQuickAddView: View {
     @State private var status: ApplicationStatus = .applied
     @State private var location = ""
     @State private var workType: WorkType = .remote
+    @State private var salaryMinText = ""
+    @State private var salaryMaxText = ""
     @State private var saved = false
 
     private var canSave: Bool {
@@ -137,7 +139,9 @@ struct MenuBarQuickAddView: View {
             role: role.trimmingCharacters(in: .whitespaces),
             status: status,
             location: location.trimmingCharacters(in: .whitespaces),
-            workType: workType
+            workType: workType,
+            salaryMin: Int(salaryMinText) ?? 0,
+            salaryMax: Int(salaryMaxText) ?? 0
         )
         modelContext.insert(app)
         withAnimation { saved = true }
@@ -155,15 +159,18 @@ struct MenuBarQuickAddView: View {
         role = p.role ?? ""
         location = p.location ?? ""
         if let wt = p.workType { workType = wt }
+        if let min = p.salaryMin { salaryMinText = "\(min)" }
+        if let max = p.salaryMax { salaryMaxText = "\(max)" }
     }
 }
 
-// Passed in from the Safari extension once it's built
 struct JobApplicationPrefill {
     var company: String?
     var role: String?
     var location: String?
     var workType: WorkType?
+    var salaryMin: Int?
+    var salaryMax: Int?
     var sourceURL: String?
 }
 
